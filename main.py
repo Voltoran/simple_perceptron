@@ -1,5 +1,6 @@
 import numpy as np
 import math
+import random
 
 
 class Web:
@@ -11,8 +12,8 @@ class Web:
         self.output_layer_size = y_count
         self.etta = etta
 
-        self.w1 = np.random.rand(self.x_count)
-        self.w2 = np.random.rand(self.hide_layer_size)
+        self.w1 = np.random.rand(self.hide_layer_size, self.x_count)
+        self.w2 = np.random.rand(self.hide_layer_size, self.output_layer_size)
 
         self.U = np.zeros(self.hide_layer_size)
         self.A = np.zeros(self.output_layer_size)
@@ -23,98 +24,80 @@ class Web:
         self.O1 = np.zeros(self.hide_layer_size)
         self.O2 = np.zeros(self.output_layer_size)
 
-    def activation_function(self, x, beta):
+    def activation_function(self, x, beta=1):
         return 1 / (1 + math.exp(-beta * x))
 
     def fit(self, x_train, y_train):
         for h in range(self.hide_layer_size):
-            self.O1[h] = np.sum(np.multiply(self.w1, x_train))
-            self.U[h] = self.activation_function(self.O1[h], 1)
+            self.O1[h] = np.sum(np.multiply(self.w1[h], x_train))
+            self.U[h] = self.activation_function(self.O1[h])
 
         for m in range(self.output_layer_size):
-            self.O2[m] = np.sum(np.multiply(self.w2, self.U))
-            self.A[m] = self.activation_function(self.O2[m], 1)
+            self.O2[m] = np.sum(np.multiply(self.w2[m], self.U))
+            self.A[m] = self.activation_function(self.O2[m])
 
         self.E = np.subtract(self.A, y_train)
-
-        print("U", self.U)
-        print("A", self.A)
-        print("O1", self.O1)
-        print("O2", self.O2)
-        print("E", self.E)
-
-
-        E_sum = np.sum(self.E)
-        print("E sum", self.E)
 
         O1_sigm = np.zeros(self.hide_layer_size)
         O2_sigm = np.zeros(self.output_layer_size)
 
         for k in range(self.output_layer_size):
-            sigm = self.activation_function(self.O2[k], 1)
+            sigm = self.activation_function(self.O2[k])
             O2_sigm[k] = sigm * (1 - sigm)
 
         for k in range(self.hide_layer_size):
-            sigm = self.activation_function(self.O1[k], 1)
+            sigm = self.activation_function(self.O1[k])
             O1_sigm[k] = sigm * (1 - sigm)
 
-        print("O1 sigm", O1_sigm)
-        print("O2 sigm", O2_sigm)
+        for h in range(self.hide_layer_size):
+            self.E2[h] = np.sum(np.multiply(self.E, np.multiply(O2_sigm, self.w2[h])))
 
-        self.E2 = np.multiply(E_sum, np.multiply(O2_sigm, self.w2))
-        print("E2", self.E2 )
+        for h in range(self.hide_layer_size):
+            a1 = np.multiply(self.E2[h], self.etta)
+            a2 = np.multiply(O1_sigm[h], x_train)
+            self.w1[h] = np.subtract(self.w1[h], np.multiply(a1, a2))
 
-        a1 = np.multiply(self.E2, self.etta)
-        a2 = np.multiply(O1_sigm, x_train)
-
-        self.w1 = np.subtract(self.w1, np.multiply(a1, a2))
-
-
-        b1 = np.multiply(self.E, self.etta)
-        b2 = np.multiply(O2_sigm, self.U)
-        self.w2 = np.subtract(self.w2, np.multiply(b1, b2))
+        for m in range(self.output_layer_size):
+            b1 = np.multiply(self.E[m], self.etta)
+            b2 = np.multiply(O2_sigm[m], self.U)
+            self.w2[m] = np.subtract(self.w2[m], np.multiply(b1, b2))
 
     def predict(self, x_data):
         for h in range(self.hide_layer_size):
-            self.O1[h] = np.sum(np.multiply(self.w1, x_data))
-            self.U[h] = self.activation_function(self.O1[h], 20)
+            self.O1[h] = np.sum(np.multiply(self.w1[h], x_data))
+            self.U[h] = self.activation_function(self.O1[h])
 
         for m in range(self.output_layer_size):
-            self.O2[m] = np.sum(np.multiply(self.w2, self.U))
-            self.A[m] = self.activation_function(self.O2[m], 20)
-
+            self.O2[m] = np.sum(np.multiply(self.w2[m], self.U))
+            self.A[m] = self.activation_function(self.O2[m])
 
         return self.A
 
 
-new_web = Web(2, 1, 3, 1)
-# print("\nW1", new_web.w1)
-# print("W2", new_web.w2)
-
-# x_train = np.array([0, 0])
-# y_train = np.array([0])
-# new_web.fit(x_train, y_train)
-# print("\nW1", new_web.w1)
-# print("W2", new_web.w2)
-
-# x_train = np.array([0, 1])
-# y_train = np.array([1])
-# new_web.fit(x_train, y_train)
-#
-# x_train = np.array([1, 0])
-# y_train = np.array([1])
-# new_web.fit(x_train, y_train)
-# print("\nW1", new_web.w1)
-# print("W2", new_web.w2)
-
-# x_train = np.array([1, 1])
-# y_train = np.array([0])
-# new_web.fit(x_train, y_train)
-
-print(new_web.predict(np.array([0, 1])))
+new_web = Web(2, 1, 5, 1)
 
 
-# a = np.array([1, 2, 3, 4])
-# b = np.array([2, 2, 2, 2])
-#
-# print(np.multiply(a, b))
+test_list = [np.array([0, 0]), np.array([0, 1]), np.array([1, 0]), np.array([1, 1])]
+
+y_test_list = [np.array([0]), np.array([1]), np.array([1]), np.array([0])]
+
+N = 1000
+for i in range(1000):
+        if i % 4 == 0:
+            x = np.array([0, 0])
+            y = np.array([0])
+            new_web.fit(x, y)
+        elif i % 4 == 1:
+            x = np.array([0, 1])
+            y = np.array([1])
+            new_web.fit(x, y)
+        elif i % 4 == 2:
+            x = np.array([1, 0])
+            y = np.array([1])
+            new_web.fit(x, y)
+        else:
+            x = np.array([1, 1])
+            y = np.array([0])
+            new_web.fit(x, y)
+
+print("-> ", new_web.predict(np.array([1, 0])))
