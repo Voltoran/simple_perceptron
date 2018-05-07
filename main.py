@@ -34,7 +34,7 @@ class Web:
         self.O1 = np.zeros(self.hide_layer_size)
         self.O2 = np.zeros(self.output_layer_size)
 
-    def activation_function(self, x, beta=20):
+    def activation_function(self, x, beta=1):
         return 1 / (1 + math.exp(-beta * x))
 
 
@@ -66,11 +66,11 @@ class Web:
 
         for k in range(self.output_layer_size):
             sigm = self.activation_function(self.O2[k])
-            O2_sigm[k] = sigm * (1 - sigm)
+            O2_sigm[k] = 1 * sigm * (1 - sigm)
 
         for k in range(self.hide_layer_size):
             sigm = self.activation_function(self.O1[k])
-            O1_sigm[k] = sigm * (1 - sigm)
+            O1_sigm[k] = 1 * sigm * (1 - sigm)
 
         # for h in range(self.hide_layer_size):
         #     self.E2[h] = np.sum(np.multiply(self.E, np.multiply(O2_sigm, self.w2[h])))
@@ -126,37 +126,37 @@ class Web:
 
 new_web = Web(2, 1, 2, 0.01)
 
-N = 20
-print("w1 **********\n", new_web.w1)
-print("w2 **********\n", new_web.w2)
-print("")
-for i in range(N):
-        k = random.randint(1, N)
-
-        if k % 4 == 0:
-            x = np.array([0, 0])
-            y = np.array([0])
-        elif k % 4 == 1:
-            x = np.array([0, 1])
-            y = np.array([1])
-        elif k % 4 == 2:
-            x = np.array([1, 0])
-            y = np.array([1])
-        else:
-            x = np.array([1, 1])
-            y = np.array([0])
-
-        new_web.fit(x, y)
-
-        print("w1 **********\n", new_web.w1)
-        print("w2 **********\n", new_web.w2)
-        print("")
-print("\nEND")
-print("w1 **********\n", new_web.w1)
-print("w2 **********\n", new_web.w2)
-
-print("-> 1 ", new_web.predict(np.array([1, 0])))
-print("-> 1 ", new_web.predict(np.array([0, 1])))
-
-print("-> 0 ", new_web.predict(np.array([1, 1])))
-print("-> 0 ", new_web.predict(np.array([0, 0])))
+# N = 20
+# print("w1 **********\n", new_web.w1)
+# print("w2 **********\n", new_web.w2)
+# print("")
+# for i in range(N):
+#         k = random.randint(1, N)
+#
+#         if k % 4 == 0:
+#             x = np.array([0, 0])
+#             y = np.array([0])
+#         elif k % 4 == 1:
+#             x = np.array([0, 1])
+#             y = np.array([1])
+#         elif k % 4 == 2:
+#             x = np.array([1, 0])
+#             y = np.array([1])
+#         else:
+#             x = np.array([1, 1])
+#             y = np.array([0])
+#
+#         new_web.fit(x, y)
+#
+#         print("w1 **********\n", new_web.w1)
+#         print("w2 **********\n", new_web.w2)
+#         print("")
+# print("\nEND")
+# print("w1 **********\n", new_web.w1)
+# print("w2 **********\n", new_web.w2)
+#
+# print("-> 1 ", new_web.predict(np.array([1, 0])))
+# print("-> 1 ", new_web.predict(np.array([0, 1])))
+#
+# print("-> 0 ", new_web.predict(np.array([1, 1])))
+# print("-> 0 ", new_web.predict(np.array([0, 0])))
