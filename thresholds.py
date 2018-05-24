@@ -27,24 +27,12 @@ class ANN:
     # Fill weighs arrays, with random values
     def fill_weights(self):
         # Use seed, to get static random values
-        random.seed(10000)
-
-        for i in range(self.hidden_nodes):
-            for j in range(self.input_nodes):
-                self.hidden_layer_weights[i, j] = random.uniform(-1, 1)
+        random.seed(1048)
+        self.hidden_layer_weights = numpy.asarray([[1, -1], [-1, 1], [1, 1]])
 
         for i in range(self.output_nodes):
             for j in range(self.hidden_nodes):
-                self.output_layer_weights[i, j] = random.uniform(-1, 1)
-
-    # Activation function
-    def sigma(self, x):
-        return 1 / (1 + math.exp(-self.beta * x))
-
-    # Activation function derivative
-    def desigma(self, x):
-        # x = self.sigma(x)
-        return self.beta * x * (1 - x)
+                self.output_layer_weights[i, j] = 1
 
     # Get output of NN, with given input
     # Return output of each neuron layer
@@ -57,62 +45,50 @@ class ANN:
             temp = 0.0
             for j in range(self.input_nodes):
                 temp += self.hidden_layer_weights[i, j] * in_values[j]
-            hidden_layer_output[i] = self.sigma(temp)
+            temp -= 0.5
+            if temp > 0.0:
+                hidden_layer_output[i] = 1
+            else:
+                hidden_layer_output[i] = 0
 
         # Get output layer output
         for i in range(self.output_nodes):
             temp = 0.0
             for j in range(self.hidden_nodes):
                 temp += self.output_layer_weights[i, j] * hidden_layer_output[j]
-            finish_layer_output[i] = self.sigma(temp)
+            temp -= 0.5
+            if temp > 0.0:
+                finish_layer_output[i] = 1
+            else:
+                finish_layer_output[i] = 0
 
         return hidden_layer_output, finish_layer_output
 
     # Fitness function
     def fit(self, in_values, expected_values):
         output_error = numpy.zeros(self.output_nodes)
-        delta_output_array = numpy.zeros(self.output_nodes)
 
         hidden_layer_output, finish_layer_output = self.predict(in_values)
 
-
-        # Output error calculation
         for i in range(self.output_nodes):
             output_error[i] = expected_values[i] - finish_layer_output[i]
-        
-        # Deltas for output layer
+
         for i in range(self.output_nodes):
-            delta_output_array[i] = self.desigma(finish_layer_output[i]) * output_error[i]
-
-        # Calculate deltas for hiddent layer, and rescale hidden layer weights
-        for i in range(self.hidden_nodes):
-            summ = 0
-            for k in range(self.output_nodes):
-                summ += delta_output_array[k] * self.output_layer_weights[k, i]
-
-            # Delta for hiddent layer
-            delta_hidden = self.desigma(hidden_layer_output[i]) * summ
-
-            # Rescale hidden weights
-            for j in range(self.input_nodes):
-                self.hidden_layer_weights[i, j] += delta_hidden * self.etta * in_values[j]
-
-        # Rescale output weights
-        for i in range(self.output_nodes):
+            delta = output_error[i]
             for j in range(self.hidden_nodes):
-                self.output_layer_weights[i, j] += delta_output_array[i] * self.etta * hidden_layer_output[j]
+                self.output_layer_weights[i, j] += delta * self.etta * hidden_layer_output[j]
 
         return output_error
 
 
-new_web = ANN(2, 1, 3, 5, 0.1)
-N = 10001
+new_web = ANN(2, 1, 3, 8, 0.1)
 print("Init out w:\n", new_web.output_layer_weights)
 print("Init hidden w:\n", new_web.hidden_layer_weights)
 print()
-
+N = 50
 for i in range(N):
-        k = i
+        k = random.randint(1, N)
+
         if k % 4 == 0:
             x = numpy.array([1, 0])
             y = numpy.array([1])
@@ -127,17 +103,14 @@ for i in range(N):
             y = numpy.array([0])
 
         error = new_web.fit(x, y)
-        # if i % 1000 == 0:
-            # print("Error: ", error[0], "( iteration ", i, ")")
-
+        # if i % 1 == 0:
+        #     print("Error: ", error[0], "( iteration ", i, ")")
 print("Out out w:\n", new_web.output_layer_weights)
 print("Out hidden w:\n", new_web.hidden_layer_weights)
 print()
 
-
 print("[1,0] -> 1: ", new_web.predict(numpy.array([1, 0]))[1])
 print("[0,1] -> 1: ", new_web.predict(numpy.array([0, 1]))[1])
-
 print("[1,1] -> 0: ", new_web.predict(numpy.array([1, 1]))[1])
 print("[0,0] -> 0: ", new_web.predict(numpy.array([0, 0]))[1])
 
